@@ -37,6 +37,12 @@ resourceBaseUrl.password = "";
 
 const pool = new pg.Pool({
   connectionString: databaseUrl,
+  // host: resourceBaseUrl.hostname,
+  // port: Number(resourceBaseUrl.port) || 5432,
+  // user: resourceBaseUrl.username,
+  // password: resourceBaseUrl.password,
+  // database: resourceBaseUrl.pathname.split("/")[1],
+  ssl: true,
 });
 
 const SCHEMA_PATH = "schema";
