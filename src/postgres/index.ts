@@ -42,7 +42,9 @@ const pool = new pg.Pool({
   // user: resourceBaseUrl.username,
   // password: resourceBaseUrl.password,
   // database: resourceBaseUrl.pathname.split("/")[1],
-  ssl: true,
+  ssl: {
+    rejectUnauthorized: false,
+  }
 });
 
 const SCHEMA_PATH = "schema";
