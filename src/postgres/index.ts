@@ -10,8 +10,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import pg from "pg";
 
-pg.defaults.ssl = true
-
 const server = new Server(
   {
     name: "example-servers/postgres",
@@ -22,7 +20,7 @@ const server = new Server(
       resources: {},
       tools: {},
     },
-  }
+  },
 );
 
 const args = process.argv.slice(2);
@@ -35,17 +33,10 @@ const databaseUrl = args[0];
 
 const resourceBaseUrl = new URL(databaseUrl);
 resourceBaseUrl.protocol = "postgres:";
-// resourceBaseUrl.password = "";
+resourceBaseUrl.password = "";
 
 const pool = new pg.Pool({
   connectionString: databaseUrl,
-  // host: resourceBaseUrl.hostname,
-  // port: Number(resourceBaseUrl.port) || 5432,
-  // user: resourceBaseUrl.username,
-  // password: resourceBaseUrl.password,
-  // database: resourceBaseUrl.pathname.split("/")[1],
-  ssl: true,
-  log: console.log,
 });
 
 const SCHEMA_PATH = "schema";
@@ -54,7 +45,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
     );
     return {
       resources: result.rows.map((row) => ({
@@ -63,9 +54,6 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         name: `"${row.table_name}" database schema`,
       })),
     };
-  } catch (error) {
-    console.error(error);
-    throw error;
   } finally {
     client.release();
   }
@@ -86,7 +74,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   try {
     const result = await client.query(
       "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
-      [tableName]
+      [tableName],
     );
 
     return {
@@ -98,9 +86,6 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         },
       ],
     };
-  } catch (error) {
-    console.error("===ReadResourceRequestSchema Error===", error);
-    throw error;
   } finally {
     client.release();
   }
@@ -136,13 +121,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         isError: false,
       };
     } catch (error) {
-      console.error("===CallToolRequestSchema ERROR===", error);
       throw error;
     } finally {
       client
         .query("ROLLBACK")
         .catch((error) =>
-          console.warn("Could not roll back transaction:", error)
+          console.warn("Could not roll back transaction:", error),
         );
 
       client.release();
